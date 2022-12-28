@@ -17,6 +17,7 @@ from datetime import datetime
 from skimage import io, color
 import matplotlib.pyplot as plt
 import tensorflow as tf
+
 from utils.config import CustomConfig, PROJECT_ROOT
 from utils.make_dir import create_dir
 from utils.config import roi_image
@@ -26,6 +27,8 @@ os.environ["AUTOGRAPH_VERBOSITY"] = "5"
 tf.autograph.set_verbosity(3, False)
 tf.cast
 import warnings
+
+print(tf.executing_eagerly())
 
 warnings.filterwarnings("ignore")
 # https://stackoverflow.com/questions/58070174/overcome-opencv-cv-io-max-image-pixels-limitation-in-python
@@ -99,10 +102,9 @@ COCO_MODEL_PATH = os.path.join(RCNN_ROOT, "mask_rcnn_coco.h5")
 if not os.path.exists(COCO_MODEL_PATH):
     utils.download_trained_weights(COCO_MODEL_PATH)
 
-#######################################################################################################################
-#                                  Make Predictions                                                                      #
-#######################################################################################################################
-
+################################################################################################
+#                                  Make Predictions                                            #
+################################################################################################
 class_number = 1
 
 config = CustomConfig(class_number)
@@ -113,6 +115,10 @@ model.load_weights(PROJECT_ROOT + "saved_model/mask_rcnn_object_0030.h5", by_nam
 # Load Large Image
 img = cv2.imread(PROJECT_ROOT + "samples/roi/" + roi_image)  # BGR
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Opencv reads images as BGR
+
+print("------------")
+print(img)
+
 patch_size = 1024
 
 SIZE_X = (
@@ -161,21 +167,18 @@ print(
     )
 )
 
-# predictions_smooth = predict_img_with_smooth_windowing(
-#     large_img,
-#     window_size=1024,
-#     subdivisions=2,  # Minimal amount of overlap for windowing. Must be an even number.
-#     nb_classes=3,
-#     pred_func=(func_pred),
-# )
-
-predictions = predict_image(large_img)
-
+predictions_smooth = predict_img_with_smooth_windowing(
+    large_img,
+    window_size=1024,
+    subdivisions=2,  # Minimal amount of overlap for windowing. Must be an even number.
+    nb_classes=3,
+    pred_func=(func_pred),
+)
 end_time = datetime.now()
 
 print("Duration: {}".format(end_time - start_time))
 
-predictions_gray = color.rgb2gray(predictions)
+predictions_smooth_gray = color.rgb2gray(predictions_smooth)
 
 plt.figure(figsize=(12, 12))
 plt.subplot(221)
@@ -183,13 +186,10 @@ plt.title("Testing Image")
 plt.imshow(large_img)
 
 plt.subplot(222)
-plt.title("Prediction")
-plt.imshow(predictions_gray)
+plt.title("Prediction with smooth blending")
+plt.imshow(predictions_smooth_gray)
 now = datetime.now()  # current date and time
 time = now.strftime("%m%d%Y_%H%M")
-
-
-print(roi_image)
 
 # Create dir for saving predictions
 dir_output = PROJECT_ROOT + "results/predicted/"
@@ -199,9 +199,11 @@ io.imsave(
     os.path.join(
         output_dir, "{}{}{}".format(roi_image.split(".")[0], str(time), ".jpg")
     ),
-    predictions,
+    predictions_smooth,
 )
 # See the comments below for the next step of this prediction
-#######################################################################################################################
-#                                  Georeferencing of the images generated.                                            #
-#######################################################################################################################
+#####################################################################
+#                      Georeferencing of the images generated.
+#                      run: python postpreprocessing/1_image_filtering.py
+#
+#####################################################################

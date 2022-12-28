@@ -1,31 +1,15 @@
 # Data files and directories common in repo root
 # Skip these folders
-datasets/
-dataset/
-Dataset/
-Data/
-data/
-logs/
-results/
-QGIS/
-stevennotebooks/
-temp/
-test/
-logs/
-train/
-Input/
-val/
-saved_model/
-notebooks/
-samples/
+dataset/*
+logs/*
+results/*
+saved_model/*
 samples/*
 # Skip these files
 *.h5
 # samples/*.tif
 # samples/split_images/*.tif
 image/
-Output/*.jpg
-Output/*.csv
 # JPEG
 *.jpg
 *.jpeg
@@ -56,8 +40,8 @@ Output/*.csv
 # Web P
 *.webp
 
-# Portable Network Graphics
-*.png
+# # Portable Network Graphics
+# *.png
 
 # Animated Portable Network Graphics
 *.apng
@@ -101,7 +85,6 @@ env/
 build/
 develop-eggs/
 dist/
-Output/*.jpg
 eggs/
 .eggs/
 lib/
